@@ -20,7 +20,8 @@ public class PowerSkyHook extends Power implements PowerRightClick {
     public Material railMaterial = Material.GLASS;
     public int hookDistance = 10;
     
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public void rightClick(final Player player) {
         RPGValue isHooking = RPGValue.get(player, item, "skyhook.isHooking");
         if (isHooking == null) {

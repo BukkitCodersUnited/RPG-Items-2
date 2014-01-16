@@ -68,7 +68,8 @@ public class PowerRainbow extends Power implements PowerRightClick {
                 ArrayList<Location> fallLocs = new ArrayList<Location>();
                 Random random = new Random();
 
-                public void run() {
+                @SuppressWarnings("deprecation")
+				public void run() {
 
                     Iterator<Location> l = fallLocs.iterator();
                     while (l.hasNext()) {

@@ -73,7 +73,8 @@ public class PowerRumble extends Power implements PowerRightClick {
 
                 private int count = 0;
 
-                public void run() {
+                @SuppressWarnings("deprecation")
+				public void run() {
                     Location above = location.clone().add(0, 1, 0);
                     if (above.getBlock().getType().isSolid() || !location.getBlock().getType().isSolid()) {
                         cancel();

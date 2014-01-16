@@ -163,7 +163,8 @@ public class Events implements Listener {
         }
     }
 
-    @EventHandler
+    @SuppressWarnings("deprecation")
+	@EventHandler
     public void onPlayerAction(PlayerInteractEvent e) {
         Player player = e.getPlayer();
         if ((e.getAction() == Action.RIGHT_CLICK_AIR || (e.getAction() == Action.RIGHT_CLICK_BLOCK) && !e.isCancelled())) {
