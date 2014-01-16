@@ -74,12 +74,18 @@ public class ItemManager {
             ConfigurationSection section = itemStorage.getConfigurationSection("items");
             if (section == null) return;
             for (String key : section.getKeys(false)) {
-                RPGItem item = new RPGItem(section.getConfigurationSection(key));
-                itemById.put(item.getID(), item);
-                itemByName.put(item.getName(), item);
-                for (Power power : item.powers) {
-                    Power.powerUsage.put(power.getName(), Power.powerUsage.get(power.getName()) + 1);
+            	try{
+            		RPGItem item = new RPGItem(section.getConfigurationSection(key));
+            		itemById.put(item.getID(), item);
+            		itemByName.put(item.getName(), item);
+            		for (Power power : item.powers) {
+            			Power.powerUsage.put(power.getName(), Power.powerUsage.get(power.getName()) + 1);
+            		}
+                } catch (ArrayIndexOutOfBoundsException ex){
+                	plugin.getLogger().severe("Error Loading" + key + " Skip it");
+                	ex.printStackTrace();
                 }
+            	
             }
             
             if (itemStorage.contains("groups")) {
