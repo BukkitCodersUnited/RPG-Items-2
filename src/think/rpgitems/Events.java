@@ -139,7 +139,7 @@ public class Events implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onProjectileFire(ProjectileLaunchEvent e) {
-        LivingEntity shooter = e.getEntity().getShooter();
+        LivingEntity shooter = (LivingEntity) e.getEntity().getShooter();
         if (shooter instanceof Player) {
             Player player = (Player) shooter;
             ItemStack item = player.getItemInHand();
