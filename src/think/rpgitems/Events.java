@@ -48,12 +48,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import think.rpgitems.data.Locale;
@@ -79,7 +82,7 @@ public class Events implements Listener {
         RPGItem rItem;
         if ((rItem = ItemManager.toRPGItem(item)) != null) {
             RPGMetadata meta = RPGItem.getMetadata(item);
-            if (rItem.getMaxDurability() != -1) {
+            if(rItem.getMaxDurability() != -1) {
                 int durability = meta.containsKey(RPGMetadata.DURABILITY) ? ((Number) meta.get(RPGMetadata.DURABILITY)).intValue() : rItem.getMaxDurability();
                 durability--;
                 if (durability <= 0) {
@@ -139,7 +142,7 @@ public class Events implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onProjectileFire(ProjectileLaunchEvent e) {
-        LivingEntity shooter = e.getEntity().getShooter();
+        ProjectileSource shooter = e.getEntity().getShooter();
         if (shooter instanceof Player) {
             Player player = (Player) shooter;
             ItemStack item = player.getItemInHand();
@@ -148,6 +151,9 @@ public class Events implements Listener {
                 return;
             if (!WorldGuard.canPvP(player.getLocation()) && !rItem.ignoreWorldGuard)
                 return;
+            if (rItem.getHasPermission() == true && player.hasPermission(rItem.getPermission()) == false){
+            	e.setCancelled(true);
+          	   player.sendMessage(ChatColor.RED + String.format(Locale.get("message.error.permission", Locale.getPlayerLocale(player))));}
             RPGMetadata meta = RPGItem.getMetadata(item);
             if (rItem.getMaxDurability() != -1) {
                 int durability = meta.containsKey(RPGMetadata.DURABILITY) ? ((Number) meta.get(RPGMetadata.DURABILITY)).intValue() : rItem.getMaxDurability();
@@ -176,6 +182,9 @@ public class Events implements Listener {
                 return;
             if (!WorldGuard.canPvP(player.getLocation()) && !rItem.ignoreWorldGuard)
                 return;
+            if (rItem.getHasPermission() == true && player.hasPermission(rItem.getPermission()) == false){
+            	e.setCancelled(true);
+      	        player.sendMessage(ChatColor.RED + String.format(Locale.get("message.error.permission", Locale.getPlayerLocale(player))));}    
             rItem.rightClick(player);
             if (player.getItemInHand().getTypeId() != 0){
                 RPGItem.updateItem(item, Locale.getPlayerLocale(player));
@@ -192,6 +201,9 @@ public class Events implements Listener {
                 return;
             if (!WorldGuard.canPvP(player.getLocation()) && !rItem.ignoreWorldGuard)
                 return;
+            if (rItem.getHasPermission() == true && player.hasPermission(rItem.getPermission()) == false){
+            	e.setCancelled(true);
+          	    player.sendMessage(ChatColor.RED + String.format(Locale.get("message.error.permission", Locale.getPlayerLocale(player))));}
             rItem.leftClick(player);
             RPGItem.updateItem(item, Locale.getPlayerLocale(player));
         }
@@ -331,10 +343,14 @@ public class Events implements Listener {
             return damage;
         if (!WorldGuard.canPvP(player.getLocation()) && !rItem.ignoreWorldGuard)
             return damage;
+        if (rItem.getHasPermission() == true && player.hasPermission(rItem.getPermission()) == false){
+        	damage = 0;
+        	e.setCancelled(true);
+      	    player.sendMessage(ChatColor.RED + String.format(Locale.get("message.error.permission", Locale.getPlayerLocale(player))));}
         damage = rItem.getDamageMin() != rItem.getDamageMax() ? (rItem.getDamageMin() + random.nextInt(rItem.getDamageMax() - rItem.getDamageMin())) : rItem.getDamageMin();
         if (e.getEntity() instanceof LivingEntity) {
             LivingEntity le = (LivingEntity) e.getEntity();
-            rItem.hit(player, le);
+            rItem.hit(player, le, e.getDamage());
         }
         RPGMetadata meta = RPGItem.getMetadata(item);
         if (rItem.getMaxDurability() != -1) {
@@ -359,7 +375,7 @@ public class Events implements Listener {
             damage = rItem.getDamageMin() != rItem.getDamageMax() ? (rItem.getDamageMin() + random.nextInt(rItem.getDamageMax() - rItem.getDamageMin())) : rItem.getDamageMin();
             if (e.getEntity() instanceof LivingEntity) {
                 LivingEntity le = (LivingEntity) e.getEntity();
-                rItem.hit((Player) entity.getShooter(), le);
+                rItem.hit((Player) entity.getShooter(), le, e.getDamage());
             }
         }
         return damage;
@@ -378,6 +394,10 @@ public class Events implements Listener {
                 continue;
             if (!WorldGuard.canPvP(p.getLocation()) && !pRItem.ignoreWorldGuard)
                 return damage;
+            if (pRItem.getHasPermission() == true && p.hasPermission(pRItem.getPermission()) == false){
+            	damage = 0;
+                e.setCancelled(true);
+          	    p.sendMessage(ChatColor.RED + String.format(Locale.get("message.error.permission", Locale.getPlayerLocale(p))));}
             if (pRItem.getArmour() > 0) {
                 damage -= Math.round(((double) damage) * (((double) pRItem.getArmour()) / 100d));
             }
@@ -399,7 +419,7 @@ public class Events implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent e) {
-        double damage = e.getDamage();
+    	double damage = e.getDamage();
         if (e.getDamager() instanceof Player) {
             damage = playerDamager(e, damage);
         } else if (e.getDamager() instanceof Projectile) {
@@ -410,4 +430,25 @@ public class Events implements Listener {
         }
         e.setDamage(damage);
     }
+    
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onItemCraft(PrepareItemCraftEvent e) {
+        if (ItemManager.toRPGItem(e.getInventory().getResult()) != null){
+        	Random random = new Random();
+        	if (random.nextInt(ItemManager.toRPGItem(e.getInventory().getResult()).recipechance) != 0){
+        		ItemStack baseitem = new ItemStack(e.getInventory().getResult().getType());
+        		e.getInventory().setResult(baseitem);
+        	}
+        }
+    }
+	
+	public void onItemDamage(PlayerItemConsumeEvent e){
+		if (ItemManager.toRPGItem(e.getItem()) != null){
+			RPGItem rpgitem = ItemManager.toRPGItem(e.getItem());
+			if (rpgitem.getMaxDurability() > 0){
+				e.getItem().setDurability((short)-1);
+			}
+		}
+	}
 }

@@ -26,39 +26,38 @@ import org.bukkit.entity.Player;
 import think.rpgitems.data.Locale;
 import think.rpgitems.power.types.PowerHit;
 
-public class PowerUnbreaking extends Power implements PowerHit {
+public class PowerLifeSteal extends Power implements PowerHit {
 
-    public int level = 1;
+    public int chance = 20;
     private Random random = new Random();
-
-    @SuppressWarnings("deprecation")
     @Override
     public void hit(Player player, LivingEntity e, double damage) {
-        if (random.nextDouble() < ((double) level) / 100d) {
-            System.out.println(player.getItemInHand().getDurability());
-            player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 1));
-            System.out.println(player.getItemInHand().getDurability());
-            player.updateInventory();
-        }
+    	if (item.getHasPermission() == true && player.hasPermission(item.getPermission()) == false){
+        }else if (random.nextInt(chance) == 0){
+          if ((player.getHealth() + damage) >= player.getMaxHealth()){
+        	  player.setHealth(player.getMaxHealth());
+          }else
+        	player.setHealth(player.getHealth() + damage);
     }
+    }	
 
     @Override
-    public void init(ConfigurationSection s) {
-        level = s.getInt("level", 1);
-    }
-
-    @Override
-    public void save(ConfigurationSection s) {
-        s.set("level", level);
+    public String displayText(String locale) {
+        return ChatColor.GREEN + String.format(Locale.get("power.lifesteal", locale), (double) chance);
     }
 
     @Override
     public String getName() {
-        return "unbreaking";
+        return "lifesteal";
     }
 
     @Override
-    public String displayText(String locale) {
-        return String.format(ChatColor.GREEN + Locale.get("power.unbreaking", locale), level);
+    public void init(ConfigurationSection s) {
+        chance = s.getInt("chance");
+    }
+
+    @Override
+    public void save(ConfigurationSection s) {
+        s.set("chance", chance);
     }
 }
